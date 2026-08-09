@@ -19,23 +19,19 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: Broad recon
+      - name: More recon
         run: |
-          echo "=== Lambda details ==="
-          aws lambda get-function-configuration --function-name nslookupv2
+          echo "=== All buckets ==="
+          aws s3api list-buckets --query 'Buckets[].Name'
 
           echo ""
-          echo "=== CloudFront distributions ==="
-          aws cloudfront list-distributions --query 'DistributionList.Items[].{Id:Id,Domain:DomainName,Origins:Origins.Items[0].DomainName}' --output table || true
+          echo "=== VPC Endpoints ==="
+          aws ec2 describe-vpc-endpoints --filters "Name=vpc-id,Values=vpc-09328d3fa21dce320" --query 'VpcEndpoints[].{Id:VpcEndpointId,Service:ServiceName,Type:VpcEndpointType}' --output table || true
 
           echo ""
-          echo "=== EC2 VPCs ==="
-          aws ec2 describe-vpcs --query 'Vpcs[].{VpcId:VpcId,Cidr:CidrBlock}' --output table || true
+          echo "=== Security Group of Lambda ==="
+          aws ec2 describe-security-groups --group-ids sg-0de9d1a2c42a08a3e --query 'SecurityGroups[].{GroupId:GroupId,Inbound:IpPermissions,Outbound:IpPermissionsEgress}' || true
 
           echo ""
-          echo "=== Subnets in the Lambda VPC ==="
-          aws ec2 describe-subnets --filters "Name=vpc-id,Values=vpc-09328d3fa21dce320" --query 'Subnets[].{SubnetId:SubnetId,Cidr:CidrBlock,Public:MapPublicIpOnLaunch}' --output table || true
-
-          echo ""
-          echo "=== Route Tables ==="
-          aws ec2 describe-route-tables --filters "Name=vpc-id,Values=vpc-09328d3fa21dce320" --query 'RouteTables[].{RT:RouteTableId,Routes:Routes}' || true
+          echo "=== Second VPC subnets ==="
+          aws ec2 describe-subnets --filters "Name=vpc-id,Values=vpc-09d39837c916df970" --query 'Subnets[].{SubnetId:SubnetId,Cidr:CidrBlock,Public:MapPublicIpOnLaunch}' --output table || true
