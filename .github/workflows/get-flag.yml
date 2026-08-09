@@ -1,35 +1,20 @@
-name: aws-access
-
-on:
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  aws:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::009661764077:role/cicdRole
-          aws-region: us-east-1
-
-      - name: Show AWS identity
+      - name: Inspect S3 and IAM permissions
         run: |
-          echo "=== AWS IDENTITY ==="
-          aws sts get-caller-identity
-
-      - name: Test target bucket
-        run: |
-          echo "=== TARGET BUCKET ==="
-          aws s3api head-bucket \
-            --bucket codec4f26c862a321ef5 || true
-
-          echo "=== TARGET OBJECT ==="
-          aws s3api head-object \
+          echo "=== LIST BUCKET ==="
+          aws s3api list-objects-v2 \
             --bucket codec4f26c862a321ef5 \
-            --key flag.txt || true
+            --max-keys 20 || true
+
+          echo "=== CHECK FLAG PREFIX ==="
+          aws s3api list-objects-v2 \
+            --bucket codec4f26c862a321ef5 \
+            --prefix flag.txt \
+            --max-keys 20 || true
+
+          echo "=== ATTACHED ROLE POLICIES ==="
+          aws iam list-attached-role-policies \
+            --role-name cicdRole || true
+
+          echo "=== INLINE ROLE POLICIES ==="
+          aws iam list-role-policies \
+            --role-name cicdRole || true
