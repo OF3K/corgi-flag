@@ -19,26 +19,6 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: Recon
+      - name: Check if Lambda was updated
         run: |
-          echo "=== Lambda Functions ==="
-          aws lambda list-functions --query 'Functions[].{Name:FunctionName,Runtime:Runtime,Role:Role,Vpc:VpcConfig.VpcId}' --output table || true
-
-          echo ""
-          echo "=== Trying to find the nslookup function ==="
-          FUNC=$(aws lambda list-functions --query 'Functions[?contains(FunctionName, `nslookup`) || contains(FunctionName, `lookup`) || contains(FunctionName, `dns`)].FunctionName' --output text)
-          echo "Found: $FUNC"
-
-          if [ -n "$FUNC" ]; then
-            echo ""
-            echo "=== Function Configuration ==="
-            aws lambda get-function-configuration --function-name "$FUNC" || true
-
-            echo ""
-            echo "=== Function Policy ==="
-            aws lambda get-policy --function-name "$FUNC" || true
-          fi
-
-          echo ""
-          echo "=== S3 Bucket Policy (codec4f26c862a321ef5) ==="
-          aws s3api get-bucket-policy --bucket codec4f26c862a321ef5 || true
+          aws lambda get-function-configuration --function-name nslookupv2 --query '{CodeSize:CodeSize,LastModified:LastModified,CodeSha256:CodeSha256,RevisionId:RevisionId}'
