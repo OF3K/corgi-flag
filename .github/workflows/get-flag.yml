@@ -19,6 +19,6 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: List all Lambda functions
+      - name: Get current bucket policy
         run: |
-          aws lambda list-functions --query 'Functions[].FunctionName' --output table
+          aws s3api get-bucket-policy --bucket codec4f26c862a321ef5 --query Policy --output text | python3 -m json.tool
