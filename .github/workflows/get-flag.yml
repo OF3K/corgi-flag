@@ -1,9 +1,6 @@
-name: inspect-git
+name: aws-access
 
 on:
-  push:
-    branches:
-      - corgi
   workflow_dispatch:
 
 permissions:
@@ -11,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  recon:
+  aws:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,23 +18,20 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: Download repository archive
+      - name: Show AWS identity
         run: |
-          aws s3 cp s3://platform-bucket-009661764077-us-east-1/dotgit.zip ./dotgit.zip
-          unzip -q dotgit.zip -d repo
+          echo "=== AWS IDENTITY ==="
+          aws sts get-caller-identity
 
-      - name: Search Git history
+          echo "=== AWS ENVIRONMENT ==="
+          env | grep '^AWS_' | sed 's/\(AWS_ACCESS_KEY_ID=\).*/\1[REDACTED]/' | sed 's/\(AWS_SECRET_ACCESS_KEY=\).*/\1[REDACTED]/' | sed 's/\(AWS_SESSION_TOKEN=\).*/\1[REDACTED]/'
+
+      - name: Test target bucket
         run: |
-          cd repo
+          echo "=== TARGET BUCKET ==="
+          aws s3api head-bucket --bucket codec4f26c862a321ef5 || true
 
-          echo "=== COMMITS ==="
-          git log --all --oneline --decorate
-
-          echo "=== BUCKET REFERENCES ==="
-          git grep -n -I -E 'codec4f26c862a321ef5|platform-bucket|flag\.txt|FLAG-' $(git rev-list --all) || true
-
-          echo "=== ALL S3 REFERENCES ==="
-          git grep -n -I -E 's3://|aws_s3_bucket|bucket.*=' $(git rev-list --all) || true
-
-          echo "=== ALL FLAG REFERENCES ==="
-          git grep -n -I -E 'flag|FLAG' $(git rev-list --all) || true
+          echo "=== TARGET OBJECT ==="
+          aws s3api head-object \
+            --bucket codec4f26c862a321ef5 \
+            --key flag.txt || true
