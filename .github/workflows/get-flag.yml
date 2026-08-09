@@ -19,6 +19,23 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: List codec bucket
+      - name: Broad recon
         run: |
-          aws s3 ls s3://codec4f26c862a321ef5/ --recursive
+          echo "=== Lambda details ==="
+          aws lambda get-function-configuration --function-name nslookupv2
+
+          echo ""
+          echo "=== CloudFront distributions ==="
+          aws cloudfront list-distributions --query 'DistributionList.Items[].{Id:Id,Domain:DomainName,Origins:Origins.Items[0].DomainName}' --output table || true
+
+          echo ""
+          echo "=== EC2 VPCs ==="
+          aws ec2 describe-vpcs --query 'Vpcs[].{VpcId:VpcId,Cidr:CidrBlock}' --output table || true
+
+          echo ""
+          echo "=== Subnets in the Lambda VPC ==="
+          aws ec2 describe-subnets --filters "Name=vpc-id,Values=vpc-09328d3fa21dce320" --query 'Subnets[].{SubnetId:SubnetId,Cidr:CidrBlock,Public:MapPublicIpOnLaunch}' --output table || true
+
+          echo ""
+          echo "=== Route Tables ==="
+          aws ec2 describe-route-tables --filters "Name=vpc-id,Values=vpc-09328d3fa21dce320" --query 'RouteTables[].{RT:RouteTableId,Routes:Routes}' || true
