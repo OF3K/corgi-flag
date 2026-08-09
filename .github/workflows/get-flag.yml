@@ -19,10 +19,9 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: List both buckets
+      - name: Get flag
         run: |
-          echo "=== codec bucket ==="
-          aws s3 ls s3://codec4f26c862a321ef5/ --recursive
-          echo ""
-          echo "=== platform bucket ==="
-          aws s3 ls s3://platform-bucket-009661764077-us-east-1/ --recursive
+          echo "=== Downloading flag.txt ==="
+          aws s3 cp s3://platform-bucket-009661764077-us-east-1/flag.txt ./flag.txt
+          echo "=== FLAG ==="
+          cat ./flag.txt
