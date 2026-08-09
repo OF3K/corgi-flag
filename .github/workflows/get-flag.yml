@@ -23,13 +23,11 @@ jobs:
           echo "=== AWS IDENTITY ==="
           aws sts get-caller-identity
 
-          echo "=== AWS ENVIRONMENT ==="
-          env | grep '^AWS_' | sed 's/\(AWS_ACCESS_KEY_ID=\).*/\1[REDACTED]/' | sed 's/\(AWS_SECRET_ACCESS_KEY=\).*/\1[REDACTED]/' | sed 's/\(AWS_SESSION_TOKEN=\).*/\1[REDACTED]/'
-
       - name: Test target bucket
         run: |
           echo "=== TARGET BUCKET ==="
-          aws s3api head-bucket --bucket codec4f26c862a321ef5 || true
+          aws s3api head-bucket \
+            --bucket codec4f26c862a321ef5 || true
 
           echo "=== TARGET OBJECT ==="
           aws s3api head-object \
