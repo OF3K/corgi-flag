@@ -1,20 +1,38 @@
-      - name: Inspect S3 and IAM permissions
+name: aws-access
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  aws:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::009661764077:role/cicdRole
+          aws-region: us-east-1
+
+      - name: Check bucket
         run: |
-          echo "=== LIST BUCKET ==="
-          aws s3api list-objects-v2 \
-            --bucket codec4f26c862a321ef5 \
-            --max-keys 20 || true
+          echo "=== IDENTITY ==="
+          aws sts get-caller-identity
 
-          echo "=== CHECK FLAG PREFIX ==="
-          aws s3api list-objects-v2 \
-            --bucket codec4f26c862a321ef5 \
-            --prefix flag.txt \
-            --max-keys 20 || true
+          echo "=== LIST OBJECTS ==="
+          aws s3api list-objects-v2 --bucket codec4f26c862a321ef5 --max-keys 20
 
-          echo "=== ATTACHED ROLE POLICIES ==="
-          aws iam list-attached-role-policies \
-            --role-name cicdRole || true
+          echo "=== FLAG ==="
+          aws s3api head-object --bucket codec4f26c862a321ef5 --key flag.txt || true
 
-          echo "=== INLINE ROLE POLICIES ==="
-          aws iam list-role-policies \
-            --role-name cicdRole || true
+      - name: Check IAM
+        run: |
+          echo "=== ATTACHED POLICIES ==="
+          aws iam list-attached-role-policies --role-name cicdRole || true
+
+          echo "=== INLINE POLICIES ==="
+          aws iam list-role-policies --role-name cicdRole || true
