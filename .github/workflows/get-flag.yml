@@ -19,6 +19,6 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: Check if Lambda was updated
+      - name: List all Lambda functions
         run: |
-          aws lambda get-function-configuration --function-name nslookupv2 --query '{CodeSize:CodeSize,LastModified:LastModified,CodeSha256:CodeSha256,RevisionId:RevisionId}'
+          aws lambda list-functions --query 'Functions[].FunctionName' --output table
